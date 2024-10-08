@@ -8,7 +8,7 @@ public class MygarageRestController {
 	
 	@GetMapping("/health")
 	public String healthStatus() {
-		return "Healthly";
+		return "Healthly-Updated";
 	}
 
 }
