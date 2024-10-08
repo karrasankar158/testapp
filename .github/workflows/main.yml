@@ -56,5 +56,5 @@ jobs:
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: springboot-example-service
-          cluster: DevCluster2
+          cluster: testappcluster1
           wait-for-service-stability: true
