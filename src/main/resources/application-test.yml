@@ -1,6 +1,0 @@
-management:
-  endpoints:
-    web:
-      base-path: /mygarageinsights #Acivating few of Actuator end-points
-      exposure:
-        include: health,metrics #Changing base-path of Actuator "/Actuator"
