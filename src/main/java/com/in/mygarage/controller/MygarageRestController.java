@@ -14,5 +14,11 @@ public class MygarageRestController {
 		log.info("mygarage application up and running");
 		return "Healthly";
 	}
+	
+	@GetMapping("/v1/health")
+	public String healthStatus1() {
+		log.info("mygarage application up and running");
+		return "Healthly";
+	}
 
 }
