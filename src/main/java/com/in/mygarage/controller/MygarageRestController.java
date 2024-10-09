@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @Slf4j
-public class MygarageRestController { 
+public class MygarageRestController {  
 	
 	@GetMapping("/health")
 	public String healthStatus() {
