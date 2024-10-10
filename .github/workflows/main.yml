@@ -27,7 +27,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'eu-north-1'
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -40,7 +40,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-          REPOSITORY: testapprepo
+          REPOSITORY: ${{ secrets.REPOSITORY_NAME }}
         run: |
             # Build a docker container and
             # push it to ECR so that it can
@@ -54,13 +54,13 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: testapptask.json
-          container-name: testapp
+          container-name: ${{ secrets.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: testappservice
-          cluster: testappcluster1
+          service: ${{ secrets.SERVICE_NAME }}
+          cluster: ${{ secrets.CLUSTER_NAME }}
           wait-for-service-stability: true
