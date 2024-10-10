@@ -1,66 +1,66 @@
-name: main
+name: main #WORKFLOE NAME.
 
 on:
   push:
-    branches: 
-    - main
+    branches:
+      - main #Branch name.
 
 jobs:
   build-and-deploy:
-    runs-on: [ ubuntu-latest ]
+    runs-on: ubuntu-latest #Operating system.
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3 #It will Clone specific repository.
 
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v3 #Java version.
         with:
-          distribution: 'temurin'
+          distribution: 'temurin' #Linux Distribution.
           java-version: '17'
 
       - name: Run maven clean and install goals
-        run: mvn clean install -Dspring.profiles.active=test
+        run: mvn clean install -Dspring.profiles.active=test #Maven install goal will run and activates profile.
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v3 #It will connect with AWS Cloud.
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }} #Retrieves secrets from the GitHub Secrets repository.
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} #Retrieves secrets from the GitHub Secrets repository.
+          aws-region: ${{ secrets.AWS_REGION }} #Retrieves secrets from the GitHub Secrets repository.
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v1 #It will log in to ECR.
         with:
-          mask-password: 'true'
+          mask-password: 'true' #It will mask passwords with *****.
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build, tag, and push to Amazon ECR
         id: build-image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-          REPOSITORY: ${{ secrets.REPOSITORY_NAME }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }} #AWS Account details.
+          IMAGE_TAG: ${{ github.sha }} #For each commit, one Docker image tag will be created.
+          REPOSITORY: ${{ secrets.REPOSITORY_NAME }} #Retrieves secrets from the GitHub Secrets repository.
         run: |
-            # Build a docker container and
-            # push it to ECR so that it can
-            # be deployed to ECS.
-            docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG
-            echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          # Build a docker container and
+          # push it to ECR so that it can
+          #be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG . #Docker tag.
+          docker push $ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG #Docker image push to ECR.
+          echo "image=$ECR_REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT #It will display Image URL.
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        uses: aws-actions/amazon-ecs-render-task-definition@v1 #Helps generate a complete task definition JSON file.
         with:
-          task-definition: testapptask.json
-          container-name: ${{ secrets.CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
+          task-definition: provider-task-definition.json #Task definition JSON file.
+          container-name: ${{ secrets.CONTAINER_NAME }} #Retrieves secrets from the GitHub Secrets repository.
+          image: ${{ steps.build-image.outputs.image }} #URI of the ECR repository.
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1 #Deploy the task definition.
         with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ secrets.SERVICE_NAME }}
-          cluster: ${{ secrets.CLUSTER_NAME }}
+          task-definition: ${{ steps.task-def.outputs.task-definition }} #It will provide the task definition name.
+          service: ${{ secrets.SERVICE_NAME }} #Retrieves secrets from the GitHub Secrets repository.
+          cluster: ${{ secrets.CLUSTER_NAME }} #Retrieves secrets from the GitHub Secrets repository.
           wait-for-service-stability: true
